@@ -1,0 +1,43 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoomStatus {
+  WAITING
+  PLAYING
+  FINISHED
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  name        String
+  status      RoomStatus @default(WAITING)
+  createdAt  DateTime @default(now())
+
+  players     Player[]
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  name      String
+  roomId    String
+  order     Int      @default(0) // turn order (join order)
+
+  coins     Int      @default(0)
+  stars     Int      @default(0)
+
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model GameResult {
+  id        String   @id @default(uuid())
+  roomId    String
+  winnerId  String
+  createdAt DateTime @default(now())
+}
