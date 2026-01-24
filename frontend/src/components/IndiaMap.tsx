@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { INDIA_MAP, getNode } from '../game/constants';
 import type { Player } from '../game/types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MapProps {
   players: Player[];
@@ -11,6 +11,8 @@ interface MapProps {
   validMoves: string[];
   currentPlayerId: string | null;
   onNodeClick: (nodeId: string) => void;
+  zoomedNodeId?: string | null;
+  isZooming?: boolean;
 }
 
 export const IndiaMap: React.FC<MapProps> = ({
@@ -21,7 +23,45 @@ export const IndiaMap: React.FC<MapProps> = ({
   validMoves,
   currentPlayerId,
   onNodeClick,
+  zoomedNodeId = null,
+  isZooming = false,
 }) => {
+  const [regionBackground, setRegionBackground] = useState<string | null>(null);
+
+  // Get zoom target coordinates
+  const zoomedNode = zoomedNodeId ? getNode(zoomedNodeId) : null;
+
+  // Load region background when zooming
+  useEffect(() => {
+    if (zoomedNodeId && isZooming) {
+      const img = new Image();
+      img.onload = () => {
+        setRegionBackground(`/asset/${zoomedNodeId}.jpeg`);
+      };
+      img.onerror = () => {
+        setRegionBackground(null);
+      };
+      img.src = `/asset/${zoomedNodeId}.jpeg`;
+    } else {
+      setRegionBackground(null);
+    }
+  }, [zoomedNodeId, isZooming]);
+
+  // Calculate zoom transform
+  const getZoomTransform = () => {
+    if (!isZooming || !zoomedNode) {
+      return { scale: 1, x: 0, y: 0 };
+    }
+    const scale = 2.5;
+    const centerX = 250;
+    const centerY = 400;
+    const x = (centerX - zoomedNode.x) * scale;
+    const y = (centerY - zoomedNode.y) * scale;
+    return { scale, x, y };
+  };
+
+  const zoomTransform = getZoomTransform();
+
   // Draw edges between connected nodes
   const renderEdges = () => {
     const edges: JSX.Element[] = [];
@@ -57,26 +97,84 @@ export const IndiaMap: React.FC<MapProps> = ({
 
   // Get node fill color based on type
   const getNodeColor = (nodeId: string) => {
-    if (nodeId === 'kanyakumari') return '#f97316'; // Start - orange
-    if (fairyNodeId === nodeId) return '#ec4899'; // Fairy - pink
-    if (treasureNodeIds.includes(nodeId)) return '#eab308'; // Treasure - yellow
-    if (shopNodeIds.includes(nodeId)) return '#8b5cf6'; // Shop - purple
-    return '#3b82f6'; // Regular - blue
+    if (nodeId === 'kanyakumari') return '#f97316';
+    if (fairyNodeId === nodeId) return '#ec4899';
+    if (treasureNodeIds.includes(nodeId)) return '#eab308';
+    if (shopNodeIds.includes(nodeId)) return '#8b5cf6';
+    return '#3b82f6';
   };
 
-  // Check if node is a valid move target
   const isValidMove = (nodeId: string) => validMoves.includes(nodeId);
 
   return (
-    <div className="relative w-full h-[700px] bg-gradient-to-b from-sky-50 to-sky-100 overflow-hidden">
-      <svg
+    <div className="relative w-full h-[700px] overflow-hidden">
+      {/* Region Background Image (when zoomed) */}
+      <AnimatePresence>
+        {isZooming && regionBackground && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: `url(${regionBackground})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div className="absolute inset-0 bg-black/30" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* India Map SVG Background - moves to the right with translateX */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        animate={{
+          scale: zoomTransform.scale,
+          x: zoomTransform.x,
+          y: zoomTransform.y,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 100,
+          damping: 20,
+        }}
+        style={{
+          transformOrigin: 'center center',
+          opacity: isZooming && regionBackground ? 0 : 1,
+        }}
+      >
+        <img
+          src="/asset/india_map.svg"
+          alt="India Map"
+          className="w-full h-full object-contain"
+          style={{
+            transform: 'translateX(50px)', // Move SVG to the right - adjust this value as needed
+          }}
+        />
+      </motion.div>
+
+      {/* SVG Overlay for nodes and connections */}
+      <motion.svg
         width="100%"
         height="100%"
         viewBox="0 0 500 800"
         preserveAspectRatio="xMidYMid meet"
-        className="absolute top-0 left-0"
+        className="absolute top-0 left-0 z-10"
+        animate={{
+          scale: zoomTransform.scale,
+          x: zoomTransform.x,
+          y: zoomTransform.y,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 100,
+          damping: 20,
+        }}
+        style={{ transformOrigin: 'center center' }}
       >
-        {/* Background */}
         <defs>
           <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
@@ -94,6 +192,7 @@ export const IndiaMap: React.FC<MapProps> = ({
           const isTreasure = treasureNodeIds.includes(node.id);
           const isShop = shopNodeIds.includes(node.id);
           const isStart = node.nodeType === 'START';
+          const isZoomedTarget = zoomedNodeId === node.id;
 
           return (
             <g
@@ -101,7 +200,6 @@ export const IndiaMap: React.FC<MapProps> = ({
               onClick={() => isValid && onNodeClick(node.id)}
               className={`${isValid ? 'cursor-pointer' : ''}`}
             >
-              {/* Valid move glow effect */}
               {isValid && (
                 <motion.circle
                   cx={node.x}
@@ -114,7 +212,20 @@ export const IndiaMap: React.FC<MapProps> = ({
                 />
               )}
 
-              {/* Node circle */}
+              {isZoomedTarget && isZooming && (
+                <motion.circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={25}
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeWidth={3}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1.3, opacity: 1 }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut', repeatType: 'reverse' }}
+                />
+              )}
+
               <circle
                 cx={node.x}
                 cy={node.y}
@@ -125,7 +236,6 @@ export const IndiaMap: React.FC<MapProps> = ({
                 className={`transition-all ${isValid ? 'drop-shadow-lg' : ''}`}
               />
 
-              {/* Node label */}
               <text
                 x={node.x}
                 y={node.y - 15}
@@ -135,26 +245,17 @@ export const IndiaMap: React.FC<MapProps> = ({
                 {node.name}
               </text>
 
-              {/* Special icons */}
               {isFairy && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>
-                  🧚
-                </text>
+                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🧚</text>
               )}
               {isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>
-                  💎
-                </text>
+                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>💎</text>
               )}
               {isShop && !isFairy && !isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>
-                  🏪
-                </text>
+                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🏪</text>
               )}
               {isStart && !isFairy && !isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>
-                  🚩
-                </text>
+                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🚩</text>
               )}
             </g>
           );
@@ -165,7 +266,6 @@ export const IndiaMap: React.FC<MapProps> = ({
           const node = getNode(player.currentNodeId);
           if (!node) return null;
 
-          // Offset players if on same node
           const playersOnSameNode = players.filter(p => p.currentNodeId === player.currentNodeId);
           const myIndex = playersOnSameNode.findIndex(p => p.id === player.id);
           const offsetAngle = (myIndex * 90) * (Math.PI / 180);
@@ -182,7 +282,6 @@ export const IndiaMap: React.FC<MapProps> = ({
               animate={{ x: node.x + offsetX, y: node.y + offsetY }}
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
             >
-              {/* Player indicator ring for current turn */}
               {player.isTurn && (
                 <motion.circle
                   cx={0}
@@ -199,7 +298,6 @@ export const IndiaMap: React.FC<MapProps> = ({
                 />
               )}
 
-              {/* Player token */}
               <circle
                 cx={0}
                 cy={0}
@@ -210,7 +308,6 @@ export const IndiaMap: React.FC<MapProps> = ({
                 className="drop-shadow-md"
               />
 
-              {/* Player initial */}
               <text
                 x={0}
                 y={4}
@@ -220,7 +317,6 @@ export const IndiaMap: React.FC<MapProps> = ({
                 {player.name.charAt(0).toUpperCase()}
               </text>
 
-              {/* Star count badge */}
               {player.stars > 0 && (
                 <g transform="translate(8, -8)">
                   <circle cx={0} cy={0} r={7} fill="#eab308" stroke="white" strokeWidth={1} />
@@ -232,10 +328,25 @@ export const IndiaMap: React.FC<MapProps> = ({
             </motion.g>
           );
         })}
-      </svg>
+      </motion.svg>
+
+      {/* Zoomed Region Info Overlay */}
+      <AnimatePresence>
+        {isZooming && zoomedNode && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg z-20"
+          >
+            <h3 className="font-bold text-lg text-gray-800">{zoomedNode.name}</h3>
+            <p className="text-sm text-gray-600">{zoomedNode.region}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-white/90 rounded-xl p-3 shadow-lg text-xs">
+      <div className={`absolute bottom-4 left-4 bg-white/90 rounded-xl p-3 shadow-lg text-xs z-20 transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
         <div className="font-semibold mb-2">Legend</div>
         <div className="space-y-1">
           <div className="flex items-center gap-2">

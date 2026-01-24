@@ -77,7 +77,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
           <div>
             <p className="text-green-700 font-medium">
               {turnPhase === 'WAITING_FOR_ROLL' && "Roll the dice to move!"}
-              {turnPhase === 'MOVING' && `Select a city to move (${remainingMoves} steps left)`}
+              {turnPhase === 'MOVING' && "Click on a highlighted city to travel there!"}
               {turnPhase === 'QUIZ' && "Answer the quiz!"}
               {turnPhase === 'FAIRY_INTERACTION' && "You found the Fairy!"}
               {turnPhase === 'SHOP' && "Welcome to the Shop!"}
@@ -99,14 +99,21 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="flex items-center justify-center gap-2 mb-4 p-4 bg-orange-50 rounded-xl"
+          className="flex flex-col items-center gap-2 mb-4 p-4 bg-orange-50 rounded-xl"
         >
-          <div className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center text-2xl font-bold text-orange-600">
-            {diceValue}
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 bg-white rounded-xl shadow-md flex items-center justify-center text-3xl font-bold text-orange-600 border-2 border-orange-200">
+              {diceValue}
+            </div>
+            <div className="text-left">
+              <p className="text-orange-700 font-medium">You rolled a {diceValue}!</p>
+              <p className="text-sm text-orange-600">
+                {remainingMoves > 0
+                  ? `Travel up to ${remainingMoves} cities away`
+                  : 'Select your destination'}
+              </p>
+            </div>
           </div>
-          <span className="text-orange-700">
-            {remainingMoves > 0 ? `${remainingMoves} moves left` : 'No moves left'}
-          </span>
         </motion.div>
       )}
 

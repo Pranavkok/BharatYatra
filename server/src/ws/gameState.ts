@@ -197,25 +197,57 @@ export class GameManager {
     room.remainingMoves = diceValue;
     room.turnPhase = 'MOVING';
 
-    // Calculate valid moves from current position
-    const validMoves = this.getValidMoves(currentPlayer.currentNodeId);
+    // Calculate ALL reachable nodes within dice value using BFS
+    const validMoves = this.getReachableNodes(currentPlayer.currentNodeId, diceValue);
 
     return { room, diceValue, validMoves };
   }
 
-  // Get valid moves from a node
-  getValidMoves(nodeId: string): string[] {
-    const node = INDIA_MAP.find(n => n.id === nodeId);
-    return node ? node.neighbors : [];
+  // Get all reachable nodes within a given number of steps using BFS
+  getReachableNodes(startNodeId: string, maxSteps: number): string[] {
+    if (maxSteps <= 0) return [];
+
+    const visited = new Set<string>();
+    const reachable = new Set<string>();
+    const queue: { nodeId: string; steps: number }[] = [{ nodeId: startNodeId, steps: 0 }];
+
+    visited.add(startNodeId);
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+
+      if (current.steps >= maxSteps) continue;
+
+      const node = INDIA_MAP.find(n => n.id === current.nodeId);
+      if (!node) continue;
+
+      for (const neighborId of node.neighbors) {
+        if (!visited.has(neighborId)) {
+          visited.add(neighborId);
+          reachable.add(neighborId); // All neighbors within range are reachable
+
+          if (current.steps + 1 < maxSteps) {
+            queue.push({ nodeId: neighborId, steps: current.steps + 1 });
+          }
+        }
+      }
+    }
+
+    return Array.from(reachable);
   }
 
-  // Check if move is valid
-  isValidMove(currentId: string, targetId: string): boolean {
-    const node = INDIA_MAP.find(n => n.id === currentId);
-    return node ? node.neighbors.includes(targetId) : false;
+  // Get valid moves from a node (now uses BFS with remaining moves)
+  getValidMoves(nodeId: string, maxSteps: number = 1): string[] {
+    return this.getReachableNodes(nodeId, maxSteps);
   }
 
-  // Move player
+  // Check if move is valid (now checks if target is reachable within remaining moves)
+  isValidMove(currentId: string, targetId: string, maxSteps: number = 1): boolean {
+    const reachable = this.getReachableNodes(currentId, maxSteps);
+    return reachable.includes(targetId);
+  }
+
+  // Move player - now supports direct jump to any reachable node
   movePlayer(roomId: string, playerId: string, targetNodeId: string): { room: GameRoom; events: string[] } | null {
     const room = this.rooms.get(roomId);
     if (!room || room.status !== 'PLAYING') return null;
@@ -225,46 +257,46 @@ export class GameManager {
     if (room.turnPhase !== 'MOVING') return null;
     if (room.remainingMoves <= 0) return null;
 
-    if (!this.isValidMove(player.currentNodeId, targetNodeId)) {
+    // Validate that target is reachable within remaining moves
+    if (!this.isValidMove(player.currentNodeId, targetNodeId, room.remainingMoves)) {
       return null;
     }
 
+    // Move directly to destination
     player.currentNodeId = targetNodeId;
-    room.remainingMoves--;
+    room.remainingMoves = 0; // Movement complete - player chose their destination
 
     const events: string[] = [];
 
-    // Check for special node interactions when moves exhausted
-    if (room.remainingMoves === 0) {
-      // Check fairy
-      if (targetNodeId === room.fairyNodeId) {
-        room.turnPhase = 'FAIRY_INTERACTION';
-        events.push('FAIRY');
-      }
-      // Check shop
-      else if (room.shopNodeIds.includes(targetNodeId)) {
-        room.turnPhase = 'SHOP';
-        events.push('SHOP');
-      }
-      // Check treasure
-      else if (room.treasureNodeIds.includes(targetNodeId) && !room.foundTreasures.includes(targetNodeId)) {
-        player.stars += GAME_CONFIG.TREASURE_REWARD_STARS;
-        room.foundTreasures.push(targetNodeId);
-        room.treasureNodeIds = room.treasureNodeIds.filter(id => id !== targetNodeId);
-        events.push('TREASURE');
+    // Check for special node interactions
+    // Check fairy
+    if (targetNodeId === room.fairyNodeId) {
+      room.turnPhase = 'FAIRY_INTERACTION';
+      events.push('FAIRY');
+    }
+    // Check shop
+    else if (room.shopNodeIds.includes(targetNodeId)) {
+      room.turnPhase = 'SHOP';
+      events.push('SHOP');
+    }
+    // Check treasure
+    else if (room.treasureNodeIds.includes(targetNodeId) && !room.foundTreasures.includes(targetNodeId)) {
+      player.stars += GAME_CONFIG.TREASURE_REWARD_STARS;
+      room.foundTreasures.push(targetNodeId);
+      room.treasureNodeIds = room.treasureNodeIds.filter(id => id !== targetNodeId);
+      events.push('TREASURE');
 
-        // Check win condition
-        if (player.stars >= GAME_CONFIG.WIN_STARS) {
-          this.endGame(roomId, playerId);
-          events.push('WIN');
-        } else {
-          room.turnPhase = 'QUIZ';
-        }
-      }
-      // Regular node -> quiz
-      else {
+      // Check win condition
+      if (player.stars >= GAME_CONFIG.WIN_STARS) {
+        this.endGame(roomId, playerId);
+        events.push('WIN');
+      } else {
         room.turnPhase = 'QUIZ';
       }
+    }
+    // Regular node -> quiz
+    else {
+      room.turnPhase = 'QUIZ';
     }
 
     return { room, events };

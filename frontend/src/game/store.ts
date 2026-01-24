@@ -7,6 +7,13 @@ interface Notification {
   message: string;
 }
 
+interface LearningData {
+  nodeId: string;
+  nodeName: string;
+  info: string;
+  quizResult?: { correct: boolean; coinsChange: number };
+}
+
 interface GameStore {
   // Connection state
   isConnected: boolean;
@@ -35,18 +42,27 @@ interface GameStore {
   validMoves: string[];
   setDiceRoll: (value: number | null, moves: string[]) => void;
 
+  // Zoom state for map
+  zoomedNodeId: string | null;
+  isZooming: boolean;
+  setZoom: (nodeId: string | null, isZooming: boolean) => void;
+
   // UI state
   showQuizModal: boolean;
   showFairyModal: boolean;
   showShopModal: boolean;
   showGameOverModal: boolean;
+  showLearningModal: boolean;
   showRegionInfo: { nodeId: string; nodeName: string; info: string } | null;
+  learningData: LearningData | null;
 
   setShowQuizModal: (show: boolean) => void;
   setShowFairyModal: (show: boolean) => void;
   setShowShopModal: (show: boolean) => void;
   setShowGameOverModal: (show: boolean) => void;
+  setShowLearningModal: (show: boolean) => void;
   setShowRegionInfo: (info: { nodeId: string; nodeName: string; info: string } | null) => void;
+  setLearningData: (data: LearningData | null) => void;
 
   // Game over state
   gameOverData: {
@@ -102,18 +118,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
   validMoves: [],
   setDiceRoll: (value, moves) => set({ diceValue: value, validMoves: moves }),
 
+  // Zoom state
+  zoomedNodeId: null,
+  isZooming: false,
+  setZoom: (nodeId, isZooming) => set({ zoomedNodeId: nodeId, isZooming }),
+
   // UI state
   showQuizModal: false,
   showFairyModal: false,
   showShopModal: false,
   showGameOverModal: false,
+  showLearningModal: false,
   showRegionInfo: null,
+  learningData: null,
 
   setShowQuizModal: (show) => set({ showQuizModal: show }),
   setShowFairyModal: (show) => set({ showFairyModal: show }),
   setShowShopModal: (show) => set({ showShopModal: show }),
   setShowGameOverModal: (show) => set({ showGameOverModal: show }),
+  setShowLearningModal: (show) => set({ showLearningModal: show }),
   setShowRegionInfo: (info) => set({ showRegionInfo: info }),
+  setLearningData: (data) => set({ learningData: data }),
 
   // Game over data
   gameOverData: null,
@@ -169,11 +194,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       currentQuiz: null,
       diceValue: null,
       validMoves: [],
+      zoomedNodeId: null,
+      isZooming: false,
       showQuizModal: false,
       showFairyModal: false,
       showShopModal: false,
       showGameOverModal: false,
+      showLearningModal: false,
       showRegionInfo: null,
+      learningData: null,
       gameOverData: null,
       notifications: [],
       lastQuizResult: null,

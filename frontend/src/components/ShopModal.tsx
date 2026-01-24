@@ -49,136 +49,238 @@ export const ShopModal: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
       >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <ShoppingBag className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">City Shop</h2>
-              <p className="text-white/80 text-sm">Buy items with your coins</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Your Balance */}
-        <div className="p-4 bg-gray-50 border-b flex items-center justify-center gap-6">
-          <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-amber-500" />
-            <span className="font-bold text-gray-800">{myPlayer.coins}</span>
-            <span className="text-gray-500 text-sm">coins</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500" />
-            <span className="font-bold text-gray-800">{myPlayer.stars}/10</span>
-            <span className="text-gray-500 text-sm">stars</span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {/* Buy Star */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Special Offer
-            </h3>
-            <div
-              className={`p-4 rounded-xl border-2 ${
-                canAffordStar ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl">
-                    ⭐
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-800">Buy a Star</p>
-                    <p className="text-sm text-gray-500">Get closer to winning!</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-amber-600 flex items-center gap-1">
-                    <Coins className="w-4 h-4" />
-                    {GAME_CONFIG.SHOP_STAR_COST}
-                  </p>
-                  <button
-                    onClick={handleBuyStar}
-                    disabled={!canAffordStar}
-                    className="mt-2 px-4 py-1.5 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Buy
-                  </button>
-                </div>
+        {/* Left Side - Shop Content */}
+        <div className="w-full md:w-3/5 flex flex-col overflow-y-auto">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">City Shop</h2>
+                <p className="text-white/80 text-sm">Buy items with your coins</p>
               </div>
             </div>
           </div>
 
-          {/* Cards */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Power Cards
-            </h3>
-            <div className="space-y-3">
-              {(Object.keys(cardInfo) as CardType[]).map((cardType) => {
-                const card = cardInfo[cardType];
-                const cost = GAME_CONFIG.CARD_COSTS[cardType];
-                const canAfford = myPlayer.coins >= cost;
-
-                return (
-                  <div
-                    key={cardType}
-                    className={`p-4 rounded-xl border-2 ${
-                      canAfford ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
-                          {card.icon}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{card.name}</p>
-                          <p className="text-xs text-gray-500">{card.desc}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-amber-600 flex items-center gap-1 text-sm">
-                          <Coins className="w-3 h-3" />
-                          {cost}
-                        </p>
-                        <button
-                          onClick={() => handleBuyCard(cardType)}
-                          disabled={!canAfford}
-                          className="mt-1 px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Buy
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Your Balance */}
+          <div className="p-4 bg-gray-50 border-b flex items-center justify-center gap-6">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <span className="font-bold text-gray-800">{myPlayer.coins}</span>
+              <span className="text-gray-500 text-sm">coins</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              <span className="font-bold text-gray-800">{myPlayer.stars}/10</span>
+              <span className="text-gray-500 text-sm">stars</span>
             </div>
           </div>
 
-          {/* Skip Button */}
-          <button
-            onClick={handleSkip}
-            className="w-full mt-6 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
-          >
-            Leave Shop
-          </button>
+          {/* Content */}
+          <div className="p-6 flex-1">
+            {/* Buy Star */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Special Offer
+              </h3>
+              <div
+                className={`p-4 rounded-xl border-2 ${
+                  canAffordStar ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200 bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl">
+                      ⭐
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-800">Buy a Star</p>
+                      <p className="text-sm text-gray-500">Get closer to winning!</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-amber-600 flex items-center gap-1">
+                      <Coins className="w-4 h-4" />
+                      {GAME_CONFIG.SHOP_STAR_COST}
+                    </p>
+                    <button
+                      onClick={handleBuyStar}
+                      disabled={!canAffordStar}
+                      className="mt-2 px-4 py-1.5 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Buy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cards */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Power Cards
+              </h3>
+              <div className="space-y-3">
+                {(Object.keys(cardInfo) as CardType[]).map((cardType) => {
+                  const card = cardInfo[cardType];
+                  const cost = GAME_CONFIG.CARD_COSTS[cardType];
+                  const canAfford = myPlayer.coins >= cost;
+
+                  return (
+                    <div
+                      key={cardType}
+                      className={`p-4 rounded-xl border-2 ${
+                        canAfford ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+                            {card.icon}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800">{card.name}</p>
+                            <p className="text-xs text-gray-500">{card.desc}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-amber-600 flex items-center gap-1 text-sm">
+                            <Coins className="w-3 h-3" />
+                            {cost}
+                          </p>
+                          <button
+                            onClick={() => handleBuyCard(cardType)}
+                            disabled={!canAfford}
+                            className="mt-1 px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Buy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Skip Button */}
+            <button
+              onClick={handleSkip}
+              className="w-full mt-6 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+            >
+              Leave Shop
+            </button>
+          </div>
         </div>
+
+        {/* Right Side - Shop Image */}
+        <motion.div
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 20 }}
+          className="w-full md:w-2/5 bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 relative flex items-center justify-center overflow-hidden"
+        >
+          {/* Decorative background circles */}
+          <div className="absolute inset-0">
+            <motion.div
+              className="absolute -top-20 -right-20 w-64 h-64 bg-purple-200/50 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.5, 0.7, 0.5],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 4,
+                ease: 'easeInOut',
+              }}
+            />
+            <motion.div
+              className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-200/50 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 0.7, 0.5],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 5,
+                ease: 'easeInOut',
+                delay: 1,
+              }}
+            />
+          </div>
+
+          {/* Floating items decoration */}
+          <div className="absolute inset-0 overflow-hidden">
+            {['🛍️', '💎', '🎁', '🏷️', '✨'].map((emoji, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-3xl"
+                style={{
+                  left: `${15 + (i * 17)}%`,
+                  top: `${10 + (i * 15)}%`,
+                }}
+                animate={{
+                  y: [0, -15, 0],
+                  rotate: [-5, 5, -5],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 3 + i * 0.5,
+                  delay: i * 0.3,
+                  ease: 'easeInOut',
+                }}
+              >
+                {emoji}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Shop Image */}
+          <motion.div
+            initial={{ scale: 0.8, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 15,
+              delay: 0.3,
+            }}
+            className="relative z-10 w-full h-full flex items-center justify-center p-4"
+          >
+            <img
+              src="/asset/shop.jpeg"
+              alt="City Shop"
+              className="max-w-full max-h-[400px] object-contain rounded-2xl shadow-2xl"
+              onError={(e) => {
+                // Fallback to styled div if image not found
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </motion.div>
+
+          {/* Shop sign overlay */}
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-md"
+          >
+            <div className="flex items-center justify-center gap-2 text-purple-700">
+              <ShoppingBag className="w-5 h-5" />
+              <span className="font-bold">Welcome to the Shop!</span>
+            </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );

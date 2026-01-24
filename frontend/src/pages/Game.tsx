@@ -10,6 +10,7 @@ import { FairyModal } from '../components/FairyModal';
 import { ShopModal } from '../components/ShopModal';
 import { GameOverModal } from '../components/GameOverModal';
 import { RegionInfoModal } from '../components/RegionInfoModal';
+import { LearningModal } from '../components/LearningModal';
 import { Notifications } from '../components/Notifications';
 import { Star, Coins, MapPin } from 'lucide-react';
 
@@ -26,6 +27,9 @@ export const Game: React.FC = () => {
     showShopModal,
     showGameOverModal,
     showRegionInfo,
+    showLearningModal,
+    zoomedNodeId,
+    isZooming,
     getMyPlayer,
     isMyTurn,
     getCurrentPlayer,
@@ -119,6 +123,8 @@ export const Game: React.FC = () => {
               validMoves={isMyTurn() && gameState.turnPhase === 'MOVING' ? validMoves : []}
               currentPlayerId={playerId}
               onNodeClick={handleNodeClick}
+              zoomedNodeId={zoomedNodeId}
+              isZooming={isZooming}
             />
           </div>
 
@@ -149,6 +155,7 @@ export const Game: React.FC = () => {
       {showShopModal && <ShopModal />}
       {showGameOverModal && <GameOverModal />}
       {showRegionInfo && <RegionInfoModal />}
+      {showLearningModal && <LearningModal />}
 
       {/* Notifications */}
       <Notifications />

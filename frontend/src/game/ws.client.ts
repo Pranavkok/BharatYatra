@@ -1,5 +1,6 @@
 import { useGameStore } from './store';
 import type { ServerMessage, CardType } from './types';
+import { getNode } from './constants';
 
 const WS_URL = 'ws://localhost:3000';
 
@@ -111,9 +112,15 @@ class GameClient {
         break;
 
       case 'PLAYER_MOVED':
-        // Clear dice after final move
+        // Clear dice after final move (direct jump)
         if (data.payload.remainingMoves === 0) {
           store.setDiceRoll(null, []);
+
+          // Trigger zoom effect on the destination node
+          const nodeId = data.payload.nodeId;
+          store.setZoom(nodeId, true);
+
+          // Zoom out after a delay (handled when turn changes or learning modal closes)
         }
         break;
 
@@ -124,12 +131,14 @@ class GameClient {
         }
         break;
 
-      case 'QUIZ_ANSWERED':
+      case 'QUIZ_ANSWERED': {
+        const quizResult = {
+          correct: data.payload.correct,
+          coinsChange: data.payload.coinsChange,
+        };
+
         if (data.payload.playerId === store.playerId) {
-          store.setLastQuizResult({
-            correct: data.payload.correct,
-            coinsChange: data.payload.coinsChange,
-          });
+          store.setLastQuizResult(quizResult);
           if (data.payload.hasAnswerCard) {
             store.addNotification('success', 'Answer Card saved you! Auto-corrected answer.');
           } else if (data.payload.correct) {
@@ -138,9 +147,29 @@ class GameClient {
             store.addNotification('error', `Wrong! ${data.payload.coinsChange} coins`);
           }
         }
+
         store.setShowQuizModal(false);
+
+        // Get the current quiz info for learning modal
+        const currentQuiz = store.currentQuiz;
+        if (currentQuiz) {
+          const node = getNode(currentQuiz.nodeId);
+          // Request region info and show learning modal
+          this.learnRegion(currentQuiz.nodeId);
+
+          // Set up learning data with quiz result
+          store.setLearningData({
+            nodeId: currentQuiz.nodeId,
+            nodeName: node?.name || currentQuiz.nodeId,
+            info: '', // Will be populated by REGION_INFO message
+            quizResult,
+          });
+          store.setShowLearningModal(true);
+        }
+
         store.setCurrentQuiz(null);
         break;
+      }
 
       case 'FAIRY_REACHED':
         if (data.payload.playerId === store.playerId) {
@@ -204,18 +233,32 @@ class GameClient {
 
       case 'TURN_CHANGED':
         store.setDiceRoll(null, []);
+        // Reset zoom when turn changes
+        store.setZoom(null, false);
+        store.setShowLearningModal(false);
+        store.setLearningData(null);
         if (data.payload.currentPlayerId === store.playerId) {
           store.addNotification('info', "It's your turn!");
         }
         break;
 
       case 'REGION_INFO':
-        store.setShowRegionInfo(data.payload);
+        // Update learning data with the region info
+        const currentLearningData = store.learningData;
+        if (currentLearningData && currentLearningData.nodeId === data.payload.nodeId) {
+          store.setLearningData({
+            ...currentLearningData,
+            info: data.payload.info,
+          });
+        } else {
+          store.setShowRegionInfo(data.payload);
+        }
         break;
 
       case 'GAME_OVER':
         store.setGameOverData(data.payload);
         store.setShowGameOverModal(true);
+        store.setZoom(null, false); // Reset zoom on game over
         if (data.payload.winnerId === store.playerId) {
           store.addNotification('success', 'Congratulations! You won!');
         } else {
@@ -290,6 +333,10 @@ class GameClient {
 
   endTurn() {
     const store = useGameStore.getState();
+    // Reset zoom and learning modal when ending turn
+    store.setZoom(null, false);
+    store.setShowLearningModal(false);
+    store.setLearningData(null);
     this.send('END_TURN', { roomId: store.roomId, playerId: store.playerId });
   }
 
