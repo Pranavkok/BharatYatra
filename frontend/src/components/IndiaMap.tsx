@@ -36,12 +36,12 @@ export const IndiaMap: React.FC<MapProps> = ({
     if (zoomedNodeId && isZooming) {
       const img = new Image();
       img.onload = () => {
-        setRegionBackground(`/asset/${zoomedNodeId}.jpeg`);
+        setRegionBackground(`/asset/${zoomedNodeId}.png`);
       };
       img.onerror = () => {
         setRegionBackground(null);
       };
-      img.src = `/asset/${zoomedNodeId}.jpeg`;
+      img.src = `/asset/${zoomedNodeId}.png`;
     } else {
       setRegionBackground(null);
     }
@@ -107,262 +107,263 @@ export const IndiaMap: React.FC<MapProps> = ({
   const isValidMove = (nodeId: string) => validMoves.includes(nodeId);
 
   return (
-    <div className="relative w-full h-[700px] overflow-hidden">
-      {/* Region Background Image (when zoomed) */}
-      <AnimatePresence>
-        {isZooming && regionBackground && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(${regionBackground})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            <div className="absolute inset-0 bg-black/30" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="relative w-full h-[700px] overflow-hidden bg-slate-50 flex justify-center items-center">
+      {/* Container constrained to map aspect ratio to ensure alignment */}
+      <div className="relative h-full aspect-square max-w-full">
 
-      {/* India Map SVG Background - moves to the right with translateX */}
-      <motion.div
-        className="absolute inset-0 z-0"
-        animate={{
-          scale: zoomTransform.scale,
-          x: zoomTransform.x,
-          y: zoomTransform.y,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 100,
-          damping: 20,
-        }}
-        style={{
-          transformOrigin: 'center center',
-          opacity: isZooming && regionBackground ? 0 : 1,
-        }}
-      >
-        <img
-          src="/asset/india_map.svg"
-          alt="India Map"
-          className="w-full h-full object-contain"
-          style={{
-            transform: 'translateX(50px)', // Move SVG to the right - adjust this value as needed
+        {/* Region Background Image (when zoomed) */}
+        <AnimatePresence>
+          {isZooming && regionBackground && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundImage: `url(${regionBackground})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
+              <div className="absolute inset-0 bg-black/30" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* India Map SVG Background */}
+        <motion.div
+          className="absolute inset-0 z-0"
+          animate={{
+            scale: zoomTransform.scale,
+            x: zoomTransform.x,
+            y: zoomTransform.y,
           }}
-        />
-      </motion.div>
+          transition={{
+            type: 'spring',
+            stiffness: 100,
+            damping: 20,
+          }}
+          style={{
+            transformOrigin: 'center center',
+            opacity: isZooming && regionBackground ? 0 : 1,
+          }}
+        >
+          <img
+            src="/asset/india_map.svg"
+            alt="India Map"
+            className="w-full h-full object-fill opacity-50"
+          />
+        </motion.div>
 
-      {/* SVG Overlay for nodes and connections */}
-      <motion.svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 500 800"
-        preserveAspectRatio="xMidYMid meet"
-        className="absolute top-0 left-0 z-10"
-        animate={{
-          scale: zoomTransform.scale,
-          x: zoomTransform.x,
-          y: zoomTransform.y,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 100,
-          damping: 20,
-        }}
-        style={{ transformOrigin: 'center center' }}
-      >
-        <defs>
-          <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-          </radialGradient>
-        </defs>
+        {/* SVG Overlay for nodes and connections */}
+        <motion.svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="none"
+          className="absolute top-0 left-0 z-10"
+          animate={{
+            scale: zoomTransform.scale,
+            x: zoomTransform.x,
+            y: zoomTransform.y,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 100,
+            damping: 20,
+          }}
+          style={{ transformOrigin: 'center center' }}
+        >
+          <defs>
+            <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+            </radialGradient>
+          </defs>
 
-        {/* Edges */}
-        {renderEdges()}
+          {/* Edges */}
+          {renderEdges()}
 
-        {/* Nodes */}
-        {INDIA_MAP.map((node) => {
-          const isValid = isValidMove(node.id);
-          const isFairy = fairyNodeId === node.id;
-          const isTreasure = treasureNodeIds.includes(node.id);
-          const isShop = shopNodeIds.includes(node.id);
-          const isStart = node.nodeType === 'START';
-          const isZoomedTarget = zoomedNodeId === node.id;
+          {/* Nodes */}
+          {INDIA_MAP.map((node) => {
+            const isValid = isValidMove(node.id);
+            const isFairy = fairyNodeId === node.id;
+            const isTreasure = treasureNodeIds.includes(node.id);
+            const isShop = shopNodeIds.includes(node.id);
+            const isStart = node.nodeType === 'START';
+            const isZoomedTarget = zoomedNodeId === node.id;
 
-          return (
-            <g
-              key={node.id}
-              onClick={() => isValid && onNodeClick(node.id)}
-              className={`${isValid ? 'cursor-pointer' : ''}`}
-            >
-              {isValid && (
-                <motion.circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={20}
-                  fill="url(#nodeGlow)"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1.2, opacity: 1 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut', repeatType: 'reverse' }}
-                />
-              )}
-
-              {isZoomedTarget && isZooming && (
-                <motion.circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={25}
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeWidth={3}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1.3, opacity: 1 }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut', repeatType: 'reverse' }}
-                />
-              )}
-
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r={isValid ? 12 : 8}
-                fill={getNodeColor(node.id)}
-                stroke="white"
-                strokeWidth={2}
-                className={`transition-all ${isValid ? 'drop-shadow-lg' : ''}`}
-              />
-
-              <text
-                x={node.x}
-                y={node.y - 15}
-                textAnchor="middle"
-                className="text-[7px] font-medium fill-slate-600 pointer-events-none select-none"
+            return (
+              <g
+                key={node.id}
+                onClick={() => isValid && onNodeClick(node.id)}
+                className={`${isValid ? 'cursor-pointer' : ''}`}
               >
-                {node.name}
-              </text>
+                {isValid && (
+                  <motion.circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={20}
+                    fill="url(#nodeGlow)"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1.2, opacity: 1 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut', repeatType: 'reverse' }}
+                  />
+                )}
 
-              {isFairy && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🧚</text>
-              )}
-              {isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>💎</text>
-              )}
-              {isShop && !isFairy && !isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🏪</text>
-              )}
-              {isStart && !isFairy && !isTreasure && (
-                <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🚩</text>
-              )}
-            </g>
-          );
-        })}
+                {isZoomedTarget && isZooming && (
+                  <motion.circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={25}
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth={3}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1.3, opacity: 1 }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut', repeatType: 'reverse' }}
+                  />
+                )}
 
-        {/* Players */}
-        {players.map((player) => {
-          const node = getNode(player.currentNodeId);
-          if (!node) return null;
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={isValid ? 12 : 8}
+                  fill={getNodeColor(node.id)}
+                  stroke="white"
+                  strokeWidth={2}
+                  className={`transition-all ${isValid ? 'drop-shadow-lg' : ''}`}
+                />
 
-          const playersOnSameNode = players.filter(p => p.currentNodeId === player.currentNodeId);
-          const myIndex = playersOnSameNode.findIndex(p => p.id === player.id);
-          const offsetAngle = (myIndex * 90) * (Math.PI / 180);
-          const offsetDistance = playersOnSameNode.length > 1 ? 12 : 0;
-          const offsetX = Math.cos(offsetAngle) * offsetDistance;
-          const offsetY = Math.sin(offsetAngle) * offsetDistance;
+                <text
+                  x={node.x}
+                  y={node.y - 15}
+                  textAnchor="middle"
+                  className="text-[7px] font-medium fill-slate-600 pointer-events-none select-none"
+                >
+                  {node.name}
+                </text>
 
-          const isMe = player.id === currentPlayerId;
+                {isFairy && (
+                  <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🧚</text>
+                )}
+                {isTreasure && (
+                  <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>💎</text>
+                )}
+                {isShop && !isFairy && !isTreasure && (
+                  <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🏪</text>
+                )}
+                {isStart && !isFairy && !isTreasure && (
+                  <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🚩</text>
+                )}
+              </g>
+            );
+          })}
 
-          return (
-            <motion.g
-              key={player.id}
-              initial={{ x: node.x + offsetX, y: node.y + offsetY }}
-              animate={{ x: node.x + offsetX, y: node.y + offsetY }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            >
-              {player.isTurn && (
-                <motion.circle
+          {/* Players */}
+          {players.map((player) => {
+            const node = getNode(player.currentNodeId);
+            if (!node) return null;
+
+            const playersOnSameNode = players.filter(p => p.currentNodeId === player.currentNodeId);
+            const myIndex = playersOnSameNode.findIndex(p => p.id === player.id);
+            const offsetAngle = (myIndex * 90) * (Math.PI / 180);
+            const offsetDistance = playersOnSameNode.length > 1 ? 12 : 0;
+            const offsetX = Math.cos(offsetAngle) * offsetDistance;
+            const offsetY = Math.sin(offsetAngle) * offsetDistance;
+
+            const isMe = player.id === currentPlayerId;
+
+            return (
+              <motion.g
+                key={player.id}
+                initial={{ x: node.x + offsetX, y: node.y + offsetY }}
+                animate={{ x: node.x + offsetX, y: node.y + offsetY }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              >
+                {player.isTurn && (
+                  <motion.circle
+                    cx={0}
+                    cy={0}
+                    r={18}
+                    fill="none"
+                    stroke={player.color}
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+                    style={{ transformOrigin: '0 0' }}
+                  />
+                )}
+
+                <circle
                   cx={0}
                   cy={0}
-                  r={18}
-                  fill="none"
-                  stroke={player.color}
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  initial={{ rotate: 0 }}
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
-                  style={{ transformOrigin: '0 0' }}
+                  r={isMe ? 12 : 10}
+                  fill={player.color}
+                  stroke="white"
+                  strokeWidth={isMe ? 3 : 2}
+                  className="drop-shadow-md"
                 />
-              )}
 
-              <circle
-                cx={0}
-                cy={0}
-                r={isMe ? 12 : 10}
-                fill={player.color}
-                stroke="white"
-                strokeWidth={isMe ? 3 : 2}
-                className="drop-shadow-md"
-              />
+                <text
+                  x={0}
+                  y={4}
+                  textAnchor="middle"
+                  className="text-[10px] font-bold fill-white pointer-events-none select-none"
+                >
+                  {player.name.charAt(0).toUpperCase()}
+                </text>
 
-              <text
-                x={0}
-                y={4}
-                textAnchor="middle"
-                className="text-[10px] font-bold fill-white pointer-events-none select-none"
-              >
-                {player.name.charAt(0).toUpperCase()}
-              </text>
+                {player.stars > 0 && (
+                  <g transform="translate(8, -8)">
+                    <circle cx={0} cy={0} r={7} fill="#eab308" stroke="white" strokeWidth={1} />
+                    <text x={0} y={3} textAnchor="middle" className="text-[8px] font-bold fill-white">
+                      {player.stars}
+                    </text>
+                  </g>
+                )}
+              </motion.g>
+            );
+          })}
+        </motion.svg>
 
-              {player.stars > 0 && (
-                <g transform="translate(8, -8)">
-                  <circle cx={0} cy={0} r={7} fill="#eab308" stroke="white" strokeWidth={1} />
-                  <text x={0} y={3} textAnchor="middle" className="text-[8px] font-bold fill-white">
-                    {player.stars}
-                  </text>
-                </g>
-              )}
-            </motion.g>
-          );
-        })}
-      </motion.svg>
+        {/* Zoomed Region Info Overlay */}
+        <AnimatePresence>
+          {isZooming && zoomedNode && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg z-20"
+            >
+              <h3 className="font-bold text-lg text-gray-800">{zoomedNode.name}</h3>
+              <p className="text-sm text-gray-600">{zoomedNode.region}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Zoomed Region Info Overlay */}
-      <AnimatePresence>
-        {isZooming && zoomedNode && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg z-20"
-          >
-            <h3 className="font-bold text-lg text-gray-800">{zoomedNode.name}</h3>
-            <p className="text-sm text-gray-600">{zoomedNode.region}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Legend */}
-      <div className={`absolute bottom-4 left-4 bg-white/90 rounded-xl p-3 shadow-lg text-xs z-20 transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="font-semibold mb-2">Legend</div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-orange-500" /> Start
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-pink-500" /> 🧚 Fairy
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-500" /> 💎 Treasure
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-purple-500" /> 🏪 Shop
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-blue-500" /> City
+        {/* Legend */}
+        <div className={`absolute bottom-4 left-4 bg-white/90 rounded-xl p-3 shadow-lg text-xs z-20 transition-opacity ${isZooming ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="font-semibold mb-2">Legend</div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-orange-500" /> Start
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-pink-500" /> 🧚 Fairy
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-yellow-500" /> 💎 Treasure
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-purple-500" /> 🏪 Shop
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-500" /> City
+            </div>
           </div>
         </div>
       </div>
