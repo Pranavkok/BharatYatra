@@ -1,0 +1,277 @@
+/* Landing Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600;700&display=swap');
+
+.landing-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Background Image */
+.landing-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.3s ease-out;
+    z-index: 1;
+}
+
+/* Dark overlay for better text visibility */
+.landing-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.2) 50%,
+        rgba(0, 0, 0, 0.6) 100%
+    );
+    z-index: 2;
+}
+
+/* Content Container */
+.landing-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Main Title */
+.landing-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(4rem, 15vw, 12rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 0.9;
+    text-shadow: 
+        0 0 20px rgba(255, 153, 0, 0.5),
+        0 0 40px rgba(255, 153, 0, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.8);
+    animation: titleGlow 3s ease-in-out infinite;
+}
+
+.title-bharat {
+    background: linear-gradient(
+        135deg,
+        #FF9933 0%,
+        #FFB366 50%,
+        #FF9933 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    background-size: 200% 200%;
+}
+
+.title-yatra {
+    background: linear-gradient(
+        135deg,
+        #FFFFFF 0%,
+        #F0F0F0 50%,
+        #FFFFFF 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    animation-delay: 0.5s;
+    background-size: 200% 200%;
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% {
+        text-shadow: 
+            0 0 20px rgba(255, 153, 0, 0.5),
+            0 0 40px rgba(255, 153, 0, 0.3),
+            0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+    50% {
+        text-shadow: 
+            0 0 30px rgba(255, 153, 0, 0.7),
+            0 0 60px rgba(255, 153, 0, 0.5),
+            0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 80px;
+    text-align: center;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.scroll-indicator p {
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.scroll-arrow {
+    font-size: 2rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Progress Bar */
+.progress-bar {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #FF9933 0%,
+        #FFFFFF 50%,
+        #138808 100%
+    );
+    border-radius: 2px;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.8);
+}
+
+/* Frame Counter */
+.frame-counter {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Scroll Spacer - Creates scrollable area */
+.scroll-spacer {
+    height: 400vh;
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .landing-title {
+        font-size: clamp(3rem, 12vw, 6rem);
+    }
+    
+    .scroll-indicator {
+        bottom: 100px;
+        font-size: 0.8rem;
+    }
+    
+    .progress-bar {
+        width: 90%;
+        bottom: 50px;
+    }
+    
+    .frame-counter {
+        bottom: 60px;
+        right: 20px;
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-title {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+    }
+    
+    .scroll-indicator {
+        bottom: 120px;
+    }
+    
+    .progress-bar {
+        bottom: 70px;
+    }
+    
+    .frame-counter {
+        bottom: 80px;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.landing-container::-webkit-scrollbar {
+    display: none;
+}
+
+.landing-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
