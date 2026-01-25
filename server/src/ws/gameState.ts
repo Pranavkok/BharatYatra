@@ -379,6 +379,9 @@ export class GameManager {
     if (!player || !player.isTurn) return null;
     if (room.turnPhase !== 'FAIRY_INTERACTION') return null;
 
+    // Move fairy to new random location when skipped
+    room.fairyNodeId = getRandomNode([room.fairyNodeId, 'kanyakumari']);
+
     room.turnPhase = 'QUIZ';
     return room;
   }

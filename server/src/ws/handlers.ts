@@ -370,6 +370,18 @@ export const handleConnection = (ws: WebSocket) => {
             sendError(ws, 'Cannot skip fairy interaction');
             return;
           }
+
+          // Notify all players that fairy has moved to a new location
+          connectionManager.sendAll(roomId, {
+            type: 'FAIRY_EXCHANGED',
+            payload: {
+              playerId,
+              starsGained: 0,
+              coinsSpent: 0,
+              newFairyNodeId: skippedRoom.fairyNodeId
+            }
+          });
+
           connectionManager.sendAll(roomId, { type: 'ROOM_STATE', payload: skippedRoom });
 
           // Generate quiz

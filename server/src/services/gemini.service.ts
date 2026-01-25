@@ -6,6 +6,10 @@ dotenv.config();
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+if (!process.env.GEMINI_API_KEY) {
+  console.error("GEMINI_API_KEY is not defined");
+}
+
 export interface QuizData {
   question: string;
   options: string[];
@@ -14,11 +18,11 @@ export interface QuizData {
 
 export const generateQuiz = async (cityName: string, region: string): Promise<QuizData> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Generate a fun, educational multiple-choice question about ${cityName}, ${region}, India.
 The question should be about one of these topics: culture, traditions, festivals, food, history, geography, or famous landmarks.
-Make it interesting and not too difficult.
+Make it interesting and  include all types of question from easy to diffcult .
 
 Return ONLY valid JSON in this exact format (no markdown, no extra text):
 {"question": "Your question here?", "options": ["Option A", "Option B", "Option C", "Option D"], "correctIndex": 0}
@@ -46,14 +50,14 @@ The correctIndex should be 0, 1, 2, or 3 indicating which option is correct.`;
     };
   } catch (error) {
     console.error("Gemini Quiz Error:", error);
-    // Fallback quiz
+    // Return a proper fallback quiz instead of invalid data
     return getFallbackQuiz(cityName, region);
   }
 };
 
 export const generateRegionInfo = async (cityName: string, region: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Write a brief, engaging description of ${cityName}, ${region}, India for a board game player.
 Include 2-3 interesting facts about:

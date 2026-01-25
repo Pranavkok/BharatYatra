@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { INDIA_MAP, getNode } from '../game/constants';
 import type { Player } from '../game/types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,10 +15,19 @@ interface MapProps {
   isZooming?: boolean;
 }
 
+interface AirplaneAnimation {
+  playerId: string;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  isAnimating: boolean;
+}
+
 export const IndiaMap: React.FC<MapProps> = ({
   players,
   fairyNodeId,
-  treasureNodeIds,
+  treasureNodeIds: _treasureNodeIds, // Hidden - not displayed on map
   shopNodeIds,
   validMoves,
   currentPlayerId,
@@ -26,7 +35,42 @@ export const IndiaMap: React.FC<MapProps> = ({
   zoomedNodeId = null,
   isZooming = false,
 }) => {
+  // Treasure nodes are intentionally hidden from players
+  void _treasureNodeIds;
   const [regionBackground, setRegionBackground] = useState<string | null>(null);
+  const [airplaneAnim, setAirplaneAnim] = useState<AirplaneAnimation | null>(null);
+  const prevPlayerPositions = useRef<Map<string, string>>(new Map());
+
+  // Track player movements and trigger airplane animation
+  useEffect(() => {
+    players.forEach((player) => {
+      const prevNodeId = prevPlayerPositions.current.get(player.id);
+      const currentNodeId = player.currentNodeId;
+
+      if (prevNodeId && prevNodeId !== currentNodeId) {
+        const fromNode = getNode(prevNodeId);
+        const toNode = getNode(currentNodeId);
+
+        if (fromNode && toNode) {
+          setAirplaneAnim({
+            playerId: player.id,
+            fromX: fromNode.x,
+            fromY: fromNode.y,
+            toX: toNode.x,
+            toY: toNode.y,
+            isAnimating: true,
+          });
+
+          // Clear animation after it completes
+          setTimeout(() => {
+            setAirplaneAnim(null);
+          }, 1500);
+        }
+      }
+
+      prevPlayerPositions.current.set(player.id, currentNodeId);
+    });
+  }, [players]);
 
   // Get zoom target coordinates
   const zoomedNode = zoomedNodeId ? getNode(zoomedNodeId) : null;
@@ -95,11 +139,11 @@ export const IndiaMap: React.FC<MapProps> = ({
     return edges;
   };
 
-  // Get node fill color based on type
+  // Get node fill color based on type (treasure nodes look like regular nodes - hidden!)
   const getNodeColor = (nodeId: string) => {
     if (nodeId === 'kanyakumari') return '#f97316';
     if (fairyNodeId === nodeId) return '#ec4899';
-    if (treasureNodeIds.includes(nodeId)) return '#eab308';
+    // Treasure nodes are hidden - they look like regular nodes
     if (shopNodeIds.includes(nodeId)) return '#8b5cf6';
     return '#3b82f6';
   };
@@ -189,7 +233,7 @@ export const IndiaMap: React.FC<MapProps> = ({
           {INDIA_MAP.map((node) => {
             const isValid = isValidMove(node.id);
             const isFairy = fairyNodeId === node.id;
-            const isTreasure = treasureNodeIds.includes(node.id);
+            // Treasure nodes are hidden - no special indicator
             const isShop = shopNodeIds.includes(node.id);
             const isStart = node.nodeType === 'START';
             const isZoomedTarget = zoomedNodeId === node.id;
@@ -248,13 +292,11 @@ export const IndiaMap: React.FC<MapProps> = ({
                 {isFairy && (
                   <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🧚</text>
                 )}
-                {isTreasure && (
-                  <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>💎</text>
-                )}
-                {isShop && !isFairy && !isTreasure && (
+                {/* Treasure nodes are hidden - no indicator shown */}
+                {isShop && !isFairy && (
                   <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🏪</text>
                 )}
-                {isStart && !isFairy && !isTreasure && (
+                {isStart && !isFairy && (
                   <text x={node.x} y={node.y + 3} textAnchor="middle" fontSize={10}>🚩</text>
                 )}
               </g>
@@ -328,6 +370,30 @@ export const IndiaMap: React.FC<MapProps> = ({
               </motion.g>
             );
           })}
+
+          {/* Airplane Animation */}
+          <AnimatePresence>
+            {airplaneAnim && airplaneAnim.isAnimating && (
+              <motion.g
+                initial={{ x: airplaneAnim.fromX, y: airplaneAnim.fromY, opacity: 1 }}
+                animate={{ x: airplaneAnim.toX, y: airplaneAnim.toY, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: 'easeInOut' }}
+              >
+                <motion.text
+                  x={0}
+                  y={0}
+                  textAnchor="middle"
+                  fontSize={24}
+                  initial={{ rotate: Math.atan2(airplaneAnim.toY - airplaneAnim.fromY, airplaneAnim.toX - airplaneAnim.fromX) * (180 / Math.PI) }}
+                  animate={{ rotate: Math.atan2(airplaneAnim.toY - airplaneAnim.fromY, airplaneAnim.toX - airplaneAnim.fromX) * (180 / Math.PI) }}
+                  style={{ transformOrigin: '0 0' }}
+                >
+                  ✈️
+                </motion.text>
+              </motion.g>
+            )}
+          </AnimatePresence>
         </motion.svg>
 
         {/* Zoomed Region Info Overlay */}
@@ -354,9 +420,6 @@ export const IndiaMap: React.FC<MapProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-pink-500" /> 🧚 Fairy
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-yellow-500" /> 💎 Treasure
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-purple-500" /> 🏪 Shop
