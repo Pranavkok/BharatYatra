@@ -137,13 +137,13 @@ const MapNode: React.FC<{
         </mesh>
       )}
 
-      {/* The Node Sphere */}
+      {/* The Node - Coin Shape */}
       <mesh
         ref={meshRef}
-        position={[0, 0.2, 0]}
+        position={[0, 0.1, 0]}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
       >
-        <sphereGeometry args={[0.3, 32, 32]} />
+        <cylinderGeometry args={[0.3, 0.3, 0.1, 32]} />
         <meshStandardMaterial
           color={color}
           emissive={isValid ? color : '#000000'}
