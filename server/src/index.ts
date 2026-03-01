@@ -5,7 +5,8 @@ import { createServer } from "http";
 import { GameServer } from "./ws/ws.server.js";
 import roomRoutes from "./routes/room.routes.js";
 import gameRoutes from "./routes/game.routes.js";
-import geminiRoutes from "./routes/gemini.routes.js"; // Added this too
+import geminiRoutes from "./routes/gemini.routes.js";
+import journeyRoutes from "./routes/journey.routes.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/api/rooms", roomRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/gemini", geminiRoutes);
+app.use("/api/journey-requests", journeyRoutes);
 
 app.get("/health", (req, res) => {
     res.send("Bharat Yatra Server is Running");
